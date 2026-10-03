@@ -96,3 +96,14 @@ tr:nth-child(even) {
     }
 
 }
+
+#sql {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    padding: 15px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: Consolas, monospace;
+    font-size: 15px;
+    margin-bottom: 25px;
+}

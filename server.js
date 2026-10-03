@@ -1,7 +1,37 @@
+require("dotenv").config();
+
 const express = require("express");
 const db = require("./database");
 
 const app = express();
+
+
+
+function isSafeSQL(sql) {
+    const query = sql.trim().toLowerCase();
+
+    if (!query.startsWith("select")) {
+        return false;
+    }
+
+    const forbiddenWords = [
+        "drop",
+        "delete",
+        "update",
+        "insert",
+        "alter",
+        "create",
+        "replace"
+    ];
+
+    for (const word of forbiddenWords) {
+        if (query.includes(word)) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 const PORT = 3000;
 
@@ -31,9 +61,9 @@ app.get("/api/products", (req, res) => {
 });
 
 // Ask API
-app.post("/api/ask", (req, res) => {
+app.post("/api/ask", async (req, res) => {
 
-    const question = req.body.question?.trim().toLowerCase();
+    const question = req.body.question?.trim();
 
     if (!question) {
         return res.status(400).json({
@@ -43,102 +73,103 @@ app.post("/api/ask", (req, res) => {
 
     console.log("User asked:", question);
 
-    // 1. Count products
-    if (
-        question.includes("how many products") ||
-        question.includes("number of products")
-    ) {
+    try {
 
-        const sql = "SELECT COUNT(*) AS total FROM products";
+        // Import Gemini
+        const { GoogleGenAI } = await import("@google/genai");
 
-        db.get(sql, [], (err, row) => {
-
-            if (err) {
-                console.error(err.message);
-
-                return res.status(500).json({
-                    error: "Database error"
-                });
-            }
-
-            res.json({
-                type: "text",
-                answer: `There are ${row.total} products in the database.`
-            });
-
+        const ai = new GoogleGenAI({
+            apiKey: process.env.GEMINI_API_KEY
         });
 
-    }
+        // Database schema
+        const schema = `
+Database: products
 
-    // 2. Show all products
-    else if (
-        question.includes("show all products") ||
-        question.includes("list all products") ||
-        question.includes("display all products")
-    ) {
+Table: products
 
-        const sql = "SELECT * FROM products";
+Columns:
+- id INTEGER PRIMARY KEY
+- name TEXT
+- price REAL
+`;
 
+        // Prompt for Gemini
+        const prompt = `
+You are an SQL assistant.
+
+Your job is to convert the user's natural language question into a SQLite SQL query.
+
+Database schema:
+
+${schema}
+
+User question:
+${question}
+
+Rules:
+- Return ONLY the SQL query.
+- Do not use markdown.
+- Do not explain anything.
+- Only generate SELECT queries.
+- Do not generate INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, or other modification queries.
+`;
+
+        // Ask Gemini
+        const response = await ai.models.generateContent({
+            model: "gemini-3.5-flash-lite",
+            contents: prompt
+        });
+
+        let sql = response.text.trim();
+
+        console.log("Generated SQL:", sql);
+
+        // Remove markdown code fences if Gemini adds them
+        sql = sql
+            .replace(/^```sql\s*/i, "")
+            .replace(/^```\s*/i, "")
+            .replace(/\s*```$/i, "")
+            .trim();
+
+        // Validate SQL
+        if (!isSafeSQL(sql)) {
+
+            return res.status(400).json({
+                error: "Generated SQL was rejected for safety reasons."
+            });
+
+        }
+
+        console.log("Executing SQL:", sql);
+
+        // Execute SQL
         db.all(sql, [], (err, rows) => {
 
             if (err) {
-                console.error(err.message);
+
+                console.error("SQL error:", err.message);
 
                 return res.status(500).json({
-                    error: "Database error"
+                    error: "SQL execution failed."
                 });
+
             }
 
             res.json({
                 type: "table",
+                sql: sql,
                 answer: rows
             });
 
         });
 
-    }
+    } catch (error) {
 
-    // 3. Show products cheaper than a dynamic price
-    else if (question.includes("cheaper than")) {
+        console.error("Gemini error:", error);
 
-        const priceMatch = question.match(/cheaper than\s+(\d+(?:\.\d+)?)/);
-
-        if (!priceMatch) {
-            return res.json({
-                type: "text",
-                answer: "Please specify a valid price."
-            });
-        }
-
-        const price = Number(priceMatch[1]);
-
-        const sql = "SELECT * FROM products WHERE price < ?";
-
-        db.all(sql, [price], (err, rows) => {
-
-            if (err) {
-                console.error(err.message);
-
-                return res.status(500).json({
-                    error: "Database error"
-                });
-            }
-
-            res.json({
-                type: "table",
-                answer: rows
-            });
-
-        });
-
-    }
-
-    // 4. Unknown question
-    else {
-
-        res.json({
-            type: "text",
-            answer: "I don't understand this question yet."
+        res.status(500).json({
+            error: "AI processing failed."
         });
 
     }
