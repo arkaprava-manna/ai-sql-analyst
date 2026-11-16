@@ -1,50 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>AI SQL Data Analyst</title>
-
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Query History</h2>
+                <button id="newQueryBtn" class="sidebar-btn primary-btn">+ New Query</button>
+                <button id="clearHistoryBtn" class="sidebar-btn danger-btn">Clear History</button>
+            </div>
+            <ul id="historyList" class="history-list"></ul>
+        </aside>
 
-    <div class="container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Top Header Row with Title and Capsule Toggle -->
+                <div class="header-row">
+                    <h1>AI SQL Data Analyst</h1>
+                    <!-- Capsule Toggle Button -->
+                    <button id="themeToggleBtn" class="capsule-toggle" aria-label="Toggle theme">
+                        <span id="toggleIcon">🌙</span>
+                        <span id="toggleText">Dark</span>
+                    </button>
+                </div>
 
-        <h1>AI SQL Data Analyst</h1>
+                <div class="card-section">
+                    <h2>Ask a Question</h2>
+                    <div class="question-box">
+                        <input type="text" id="question" placeholder="Ask something about your data e.g., 'Show me laptops under 60k'...">
+                        <button id="analyzeBtn" class="analyze-btn">Analyze</button>
+                    </div>
+                </div>
 
-        <h2>Ask a Question</h2>
+                <div class="card-section">
+                    <h2>Generated SQL</h2>
+                    <pre id="sql"><code>SQL query will appear here.</code></pre>
+                </div>
 
-        <div class="question-box">
-
-            <input type="text" id="question" placeholder="Ask something about your data...">
-
-            <button id="analyzeBtn">
-                Analyze
-            </button>
-
-        </div>
-
-        <h2>Generated SQL</h2>
-
-        <pre id="sql">
-SQL query will appear here.
-</pre>
-
-        <h2>Answer</h2>
-
-        <div id="result">
-            Your answer will appear here.
-        </div>
-
+                <div class="card-section">
+                    <h2>Answer & Insights</h2>
+                    <div id="result">
+                        Your answer will appear here.
+                    </div>
+                </div>
+                
+                <div class="chart-wrapper">
+                    <canvas id="chartCanvas"></canvas>
+                </div>
+            </div>
+        </main>
     </div>
-
     <script src="script.js"></script>
-
 </body>
-
 </html>
