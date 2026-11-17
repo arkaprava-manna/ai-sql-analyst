@@ -11,6 +11,49 @@ const toggleText = document.getElementById("toggleText");
 
 let currentChart = null;
 
+const uploadIconBtn = document.getElementById("uploadIconBtn");
+const csvFileInput = document.getElementById("csvFileInput");
+const uploadStatus = document.getElementById("uploadStatus");
+
+// Trigger the hidden file input when the + button is clicked
+uploadIconBtn.addEventListener("click", () => {
+    csvFileInput.click();
+});
+
+// Show the selected file name when the user picks a file
+// Auto-upload the file to the backend when selected
+csvFileInput.addEventListener("change", async () => {
+    if (csvFileInput.files.length > 0) {
+        const file = csvFileInput.files[0];
+        
+        uploadStatus.textContent = `⏳ Uploading and analyzing ${file.name}...`;
+        uploadStatus.style.color = "var(--text-secondary)";
+
+        // Package the file for sending
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+            
+            if (res.ok) {
+                uploadStatus.textContent = `✅ Success! ${file.name} is ready to query. Try asking a question about it!`;
+                uploadStatus.style.color = "#10b981"; // Success green
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (err) {
+            uploadStatus.textContent = `❌ Error: ${err.message}`;
+            uploadStatus.style.color = "#ef4444"; // Error red
+        }
+    }
+});
+
 // ==========================================
 // 1. THEME TOGGLE LOGIC (Capsule Button)
 // ==========================================

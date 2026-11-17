@@ -35,9 +35,17 @@
                 <div class="card-section">
                     <h2>Ask a Question</h2>
                     <div class="question-box">
+                        <!-- Hidden file input -->
+                        <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                        
+                        <!-- Minimal icon button -->
+                        <button id="uploadIconBtn" class="icon-btn" title="Upload Custom CSV Dataset">➕</button>
+                        
                         <input type="text" id="question" placeholder="Ask something about your data e.g., 'Show me laptops under 60k'...">
                         <button id="analyzeBtn" class="analyze-btn">Analyze</button>
                     </div>
+                    <!-- Small status text to show when a file is selected -->
+                    <p id="uploadStatus" style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;"></p>
                 </div>
 
                 <div class="card-section">

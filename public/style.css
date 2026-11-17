@@ -220,6 +220,25 @@ h2 {
 }
 .analyze-btn:hover { background-color: var(--accent-hover); }
 
+/* Minimal Icon Button */
+.icon-btn {
+    background-color: var(--table-header);
+    border: 1.5px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 10px;
+    padding: 0 16px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn:hover {
+    background-color: var(--border-color);
+    transform: scale(1.02);
+}
+
 #result {
     margin-top: 10px;
     font-size: 15px;
